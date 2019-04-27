@@ -12,7 +12,8 @@ Zigbee::Zigbee()
 	status = REQUEST_RECVING;
 	neighborTable = -1;
 	sendBeaconTime = 0;
-	int wakeupTime = 0;
+	wakeupTime = 0;
+	RRCycleTime = 0;
 
 #ifdef DEBUG 
 	std::cout << "Zigbee No." << addr << " will be start up at (time): " << startupTime << std::endl;
@@ -63,7 +64,7 @@ bool Zigbee::SendSignalToEnv(int time)
 				sendBeaconTime = -1;
 			}
 			signalToSend = true;
-			wakeupTime++;
+			wakeupTime++; //std::cout << wakeupTime;
 
 #ifdef DEBUG 
 			std::cout << "ZB_" << addr << " (AS)  ->\t";//ASK_SENDING
@@ -95,11 +96,20 @@ void Zigbee::RecvSignalFromEnv(int envTime, bool signal)
 		switch (status)
 		{
 		case Zigbee::REQUEST_RECVING:
+#ifdef OPTIMIZE
+			if (OptRRDutyCycle(envTime, signalPosition)) {
+				rssi[cyclePosition][signalPosition] = signal;
+				wakeupTime++; //std::cout << wakeupTime; // DEBUG
+			}
+			else
+				rssi[cyclePosition][signalPosition] = false;
+#else
 			rssi[cyclePosition][signalPosition] = signal;
 			wakeupTime++;
+#endif // OPTIMIZE
 
 #ifdef DEBUG 
-			if (signal)
+			if (rssi[cyclePosition][signalPosition])
 				std::cout << "ZB_"<<addr<<" (RR)\t"; //REQUEST_RECVING
 #endif	
 
@@ -115,11 +125,21 @@ void Zigbee::RecvSignalFromEnv(int envTime, bool signal)
 		case Zigbee::ASK_SENDING:
 			break;
 		case Zigbee::CONFIRM_RECVING:
+#ifdef OPTIMIZE
+			if (signalPosition == (referencePosition + SAMPLE_TIME - 1) % SAMPLE_TIME) {
+				rssi[cyclePosition][signalPosition] = signal;
+				wakeupTime++; //std::cout << wakeupTime;
+			}
+			else {
+				rssi[cyclePosition][signalPosition] = false;
+			}
+#else
 			rssi[cyclePosition][signalPosition] = signal;
 			wakeupTime++;
+#endif // OPTIMIZE
 
 #ifdef DEBUG 
-			if (signal)
+			if (rssi[cyclePosition][signalPosition])
 				std::cout << "ZB_" << addr << " (CR)\t";//CONFIRM_RECVING
 #endif	
 
@@ -189,4 +209,21 @@ int Zigbee::GetMaxFoldSum()
 int Zigbee::GetWakeupTime()
 {
 	return wakeupTime;
+}
+
+bool Zigbee::OptRRDutyCycle(int envTime, int signalPosition)
+{
+	int cycleTime = (envTime - startupTime) / SAMPLE_TIME;
+	int foldSum = 0;
+	if (cycleTime < 3)
+		return true;
+	else {
+		for (int i = 0; i < REQUEST_RECVING; i++)
+			foldSum += rssi[i][signalPosition];
+		if (foldSum == cycleTime)
+			return true;
+		else	
+			return false;
+	}
+
 }

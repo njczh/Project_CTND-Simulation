@@ -2,9 +2,9 @@
 //#define DEBUG
 #include <iostream>
 
-constexpr auto SAMPLE_TIME = 800;	// 每个信标周期的采样
-constexpr auto NOISE_PARA = 2;	// 噪声参数
-constexpr auto ZIGBEE_NUM = 4;	// 环境中参与邻居发现的zigbee设备数量
+constexpr auto SAMPLE_TIME = 100;	// 每个信标周期的采样
+constexpr auto NOISE_PARA = 1;	// 噪声参数
+constexpr auto ZIGBEE_NUM = 1;	// 环境中参与邻居发现的zigbee设备数量
 
 class wsn
 {

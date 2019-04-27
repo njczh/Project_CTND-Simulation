@@ -1,4 +1,5 @@
 #pragma once
+//#define OPTIMIZE
 #include "wsn.h"
 class Zigbee :
 	public wsn
@@ -22,6 +23,7 @@ private:
 	int neighborTable;
 	int sendBeaconTime;
 	int wakeupTime = 0;
+	int RRCycleTime = 0;
 
 public:
 	Zigbee();
@@ -33,5 +35,6 @@ public:
 	void RecvSignalFromEnv(int time, bool signal);
 	int GetMaxFoldSum();
 	int GetWakeupTime();
+	bool OptRRDutyCycle(int envTime,int signalPosition);
 };
 

@@ -5,9 +5,13 @@
 #include <iostream>
 #include <iomanip>
 #include <windows.h>
+#include <fstream>
+
+
+//#define NOISE
 using namespace std;
 
-constexpr auto SIMULATION_TIMES = 100;
+constexpr auto SIMULATION_TIMES = 500;
 constexpr auto FAIL_THRESHOLD = SAMPLE_TIME * 1000;
 
 
@@ -23,6 +27,10 @@ int main()
 	int failTime = 0;
 	int totalDelayTime = 0;
 	double totalDutycycle = 0;
+	ofstream saveFile("result.txt");
+
+	srand((unsigned)time(NULL));
+
 	for (int i = 0; i < SIMULATION_TIMES; i++)
 	{
 		if (SIMULATION_TIMES != 1)
@@ -34,8 +42,8 @@ int main()
 		if (tempDl != -1 && isDiscoverCorrect) {
 			successTime++; 
 			totalDelayTime += tempDl;
-			totalDutycycle += tempDc;
-
+			totalDutycycle += tempDc; 
+			saveFile << tempDc<<"\n";
 		}
 		else
 			failTime++;
@@ -46,19 +54,20 @@ int main()
 	cout << "\n================================== SYSTEM RUNNING COMPLETE!  SIMULATION FINISH!  ==================================\n";
 	cout << "SAMPLE_TIME: " << SAMPLE_TIME
 		<< ",\t\tNOISE_PARA: " << NOISE_PARA
-		<< ",\t\tZIGBEE_NUM: " << ZIGBEE_NUM << endl;
+		<< ",\t\t\tZIGBEE_NUM: " << ZIGBEE_NUM << endl;
 	cout << "TOTAL SIMULATION TIME: " << SIMULATION_TIMES
-		<< ", \tSUCCESS time: " << successTime << ", \tFAIL time: " << failTime << endl;
-	cout << "Average discovery delay: " << (double)totalDelayTime / SIMULATION_TIMES * 102.4 / 1000 << "s";
-	cout << "\t\t\tAverage Zigbee DutyCycle: " << (double)totalDutycycle / SIMULATION_TIMES << "%";
+		<< ", \tSUCCESS time: " << successTime << "(" << (double)successTime / SIMULATION_TIMES * 100 << "%)"
+		<< ", \tFAIL time: " << failTime << endl;
+	cout << "Average discovery delay: " << (double)totalDelayTime / SIMULATION_TIMES * 0.1024 << "s";
+	cout << "\t\t\t\tAverage Zigbee DutyCycle: " << (double)totalDutycycle / SIMULATION_TIMES << "%";
 	cout << "\n===================================================================================================================\n\n";
 
-
+	saveFile.close();
 }
 
 int oneTimeSimulation(int &delay, double&dutycycle, bool&isDiscoverCorrect)
 {
-	srand((unsigned)time(NULL));
+	//srand((unsigned)time(NULL));
 
 	int envTime = 0;				// 环境时钟
 	bool envToZigbee = false;		// 某时刻zigbee设备可以感测到的能量信号
@@ -82,9 +91,12 @@ int oneTimeSimulation(int &delay, double&dutycycle, bool&isDiscoverCorrect)
 		std::cout << "Env Time: " << setw(3) << setfill('0') << envTime << "\t";
 #endif 
 		/****************************** 发送信号 *********************************/
-
+#ifdef NOISE
 		bool noiseSignal = GetNoiseSignal(envTime);
-		//bool noiseSignal = false;
+#else
+		bool noiseSignal = false;
+#endif // NOISE
+
 #ifdef DEBUG 
 		if (noiseSignal)
 			std::cout << "  [NOISE]  =>\t";
@@ -176,6 +188,6 @@ double CaluAllZigbeeWuTime(Zigbee zigbees[],int envTime)
 {
 	double total = 0;
 	for (int i = 0; i < ZIGBEE_NUM; i++)
-		total += ((double)zigbees[i].GetWakeupTime() / envTime);
+		total += ((double)zigbees[i].GetWakeupTime() / (envTime-zigbees[i].startupTime));
 	return total / ZIGBEE_NUM * 100;
 }
