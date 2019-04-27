@@ -18,12 +18,30 @@
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="wsn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Wifi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Zigbee.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ctnd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="wsn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Wifi.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Zigbee.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
